@@ -1,3 +1,6 @@
 [submodule "Freenove_4WD_Smart_Car_Kit_for_Raspberry_Pi"]
 	path = Freenove_4WD_Smart_Car_Kit_for_Raspberry_Pi
 	url = https://github.com/Freenove/Freenove_4WD_Smart_Car_Kit_for_Raspberry_Pi.git
+[submodule "CSE360-MobileRobotics"]
+	path = CSE360-MobileRobotics
+	url = https://github.com/dsaldana/CSE360-MobileRobotics.git
