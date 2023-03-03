@@ -4,7 +4,8 @@ import time
 
 if __name__ == "__main__":
 
-    x_d = np.array([2.0, 3.0])
+    x_d = np.array([5.0, 3.5])
+    #x_d = np.array([1.0, 0.0])
 
     IP_ADDRESS = '192.168.0.207'
 
@@ -12,9 +13,7 @@ if __name__ == "__main__":
    
     print("Starting")
     try:
-        # hostname = socket.gethostname()
-        # ip_addr = socket.gethostbyname(hostname)
-        clientAddress = "192.168.0.6"
+        clientAddress = "192.168.0.25"
         optitrackServerAddress = "192.168.0.4"
         robot_id = 207
         
@@ -23,13 +22,14 @@ if __name__ == "__main__":
 
         position = apis.Position(clientAddress, optitrackServerAddress, robot_id)
 
-        K1 = 500#100
-        K2 = 2000 #500
+        K1 = 1000
+        K2 = 7000 #500
 
         desiredAngle = None
 
         start = time.time()
         while True:
+
             xyz, rot = position.get()
             x, y, _ = xyz
 
@@ -41,22 +41,27 @@ if __name__ == "__main__":
 
             #print("Dist", dist, x_t)
 
-            if desiredAngle is None:
-                desiredAngle = np.arctan(err[1] / err[0])
-
-            print(desiredAngle - rot * np.pi / 180, dist, time.time() - start, sep=",")
+            desiredAngle = np.arctan2(err[1], err[0])
 
             #print("Distance", dist)
 
-            v = K1 * dist
-            omega = K2 * (desiredAngle - rot * np.pi / 180);
+            angle = rot / 180 * np.pi
 
-           # print("Omega", omega, "v", v)
+            angleDiff = np.arctan2(np.sin(desiredAngle - angle) , np.cos(desiredAngle - angle))
+
+            print(angleDiff)
+
+            if dist <= 0.2:
+                robot.stop_motor()
+                break
+
+            v = K1 * dist
+
+            omega = K2 * angleDiff;
 
             u = np.array([v - omega, v + omega])
             u[u > 1500.] = 1500.
             u[u < -1500.] = -1500.
-            #print("u", u)        
             
             robot.set_motor(u[0], u[0], u[1], u[1])
 

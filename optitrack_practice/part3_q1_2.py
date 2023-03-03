@@ -1,15 +1,12 @@
 import numpy as np
 import apis
 import time
-import sys
 
-sys.path.insert(0, "..")
+#def circle(steps, init):
+#    return [np.array([np.cos(s) + init[0], np.sin(s) + init[1]]) for s in steps]
 
-import trajectory.piecewise as piecewise
-
-def rect():
-    _, x, y, _, _ = piecewise.spline_2d([5., -3.8, -3.8, 5., 5.], [3.5, 3.5, -2.5, -2.5, 3.5], [0.,0.,0.,0.,0.], [0.,0.,0.,0.,0.], [0., 1., 2., 3., 4.], 100)
-    return [np.array([i, j]) for i,j in zip(x,y)]
+def circle(t, init):
+    return np.array([np.cos(t / 5.) + init[0], np.sin(t / 5.) + init[1]])
 
 if __name__ == "__main__":
 
@@ -30,34 +27,35 @@ if __name__ == "__main__":
 
         position = apis.Position(clientAddress, optitrackServerAddress, robot_id)
 
-        K1 = 1500#100
-        K2 = 3000
+        K1 = 1000#100
+        K2 = 1500
 
         desiredAngle = None
 
-        xyz, rot = position.get()
+        xyz_, rot = position.get()
 
 
-        x_t = np.array([xyz[0], xyz[0]])
+        #x_t = np.array([xyz[0], xyz[0]])
 
-        positions = rect()#[np.array([5.,2.]), np.array([6.,2.]), np.array([6.,3.]), np.array([5.,3.])]
-       
-        #print(positions)
-
+        #positions = circle(np.linspace(0, 2 * np.pi, 4), np.array([xyz[0], xyz[1]]))
+        
         start = time.time()
 
-        pos = 0
+        #pos = 0
 
-        x_d = np.copy(positions[pos])
+        #x_d = np.copy(positions[pos])
 
-        err = x_d - x_t
-        desiredAngle = np.arctan2(err[1], err[0])
-
+        #err = x_d - x_t
+        #desiredAngle = np.arctan2(err[1], err[0])
+        #print(desiredAngle)
+        
         print("robotx", "roboty", "desiredx", "desiredy", sep=",")
 
         while True:
             xyz, rot = position.get()
             x, y, _ = xyz
+
+            x_d = circle(time.time() - start, np.array([xyz_[0], xyz_[1]]))
 
             x_t = np.array([x, y])
 
@@ -70,22 +68,28 @@ if __name__ == "__main__":
             angle = rot / 180 * np.pi
             desiredAngle = np.arctan2(err[1], err[0])
 
-            while dist <= 0.3:
-                pos += 1
-                pos = pos % (len(positions) - 1)
-                x_d = np.copy(positions[pos])
-                err = x_d - x_t
-                dist = np.linalg.norm(err)
-                desiredAngle = np.arctan2(err[1], err[0])
 
+            #if dist <= 0.3:
+                #print("Next")
+            #    pos += 1
+            #    pos = pos % len(positions)
+            #    x_d = np.copy(positions[pos])
+            #    err = x_d - x_t
+            #    dist = np.linalg.norm(err)
+            #    desiredAngle = np.arctan2(err[1], err[0])
+
+            
+            print(x_t[0], x_t[1], x_d[0], x_d[1], sep=",")
+        
                 
             #print(x_d, x_t)
 
+            #print("Dist", dist, x_t)
+
+
             #print(desiredAngle - rot, dist, time.time() - start, sep=",")
 
-            #print("Distance", dist
-
-            print(x_t[0], x_t[1], x_d[0], x_d[1], sep=",")
+            #print("Distance", dist)
 
             v = K1 * dist
             angleDiff = np.arctan2(np.sin(desiredAngle - angle) , np.cos(desiredAngle - angle))
