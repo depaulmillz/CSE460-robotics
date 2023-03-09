@@ -1,9 +1,6 @@
 import socket
 import time
 import sys
-
-sys.path.insert(0, "./optitrack")
-
 from NatNetClient import NatNetClient
 from util import quaternion_to_euler_angle_vectorized1
 import numpy as np

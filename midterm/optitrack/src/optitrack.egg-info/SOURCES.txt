@@ -1,0 +1,13 @@
+pyproject.toml
+src/DataDescriptions.py
+src/MoCapData.py
+src/NatNetClient.py
+src/__init__.py
+src/optitrack_test.py
+src/robot_control_test.py
+src/util.py
+src/optitrack.egg-info/PKG-INFO
+src/optitrack.egg-info/SOURCES.txt
+src/optitrack.egg-info/dependency_links.txt
+src/optitrack.egg-info/requires.txt
+src/optitrack.egg-info/top_level.txt
