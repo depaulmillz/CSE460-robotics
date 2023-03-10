@@ -65,7 +65,7 @@ class Robot:
         self.s.shutdown(2)
         self.s.close()
 
-class Path:
+class StraightPath:
 
     def __init__(self, start_time, time_to_go, x_0, x_d):
         self.start_time = start_time
@@ -81,6 +81,16 @@ class Path:
 
 def angle_diff(desired, actual):
     return np.arctan2(np.sin(desired - actual) , np.cos(desired - actual));
+
+def dist(x_d, x_t):
+    err = x_d - x_t
+    dist = np.linalg.norm(err)
+    return dist
+
+def angle(x_d, x_t):
+    err = x_d - x_t
+    return np.arctan2(err[1], err[0])
+
 
 def dist_and_angle(x_d, x_t):
     err = x_d - x_t

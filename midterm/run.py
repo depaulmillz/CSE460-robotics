@@ -3,12 +3,20 @@ import apis
 import time
 import sys
 
+factor = 3.0
+
+def elipse(a, b, t, init):
+    return np.array([init[0] + a - a * np.cos(t / factor), init[1] + b * np.sin(t / factor)])
+
 if __name__ == "__main__":
 
     IP_ADDRESS = '192.168.0.207'
 
     robot = apis.Robot(IP_ADDRESS)
-   
+  
+    duck = np.array([0.9794962406158447, 1.392021656036377])
+    box_width = .65
+
     print("Starting")
     try:
         # hostname = socket.gethostname()
@@ -22,20 +30,33 @@ if __name__ == "__main__":
 
         position = apis.Position(clientAddress, optitrackServerAddress, robot_id)
 
-        K1 = 1500#100
-        K2 = 3000
+        K1 = 2000#100
+        K2 = 2500
         
         start = time.time()
 
-        x_t, angle = position.get()
+        init, angle = position.get()
 
-        path = apis.Path(start, 10, x_t, np.array([5.0, 2.5]))
+        sign = -1
 
+        if init[0] <= duck[0]:
+            sign = 1
+
+        a = sign * apis.dist(init, duck) / 2.0
+
+        print(a)
+
+        b = box_width
+        
         while True:
+
             x_t, angle = position.get()
 
-            x_d = path.next(time.time())
-
+            if time.time() - start <= 2 * np.pi * factor:
+                x_d = elipse(a, b, time.time() - start, init)
+            else:
+                x_d = init
+            
             dist, desiredAngle = apis.dist_and_angle(x_d, x_t)
 
             v = K1 * dist
