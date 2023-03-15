@@ -10,7 +10,7 @@ class Camera:
         if raspberrypi:
             from picamera2 import Picamera2 
             self.camera = Picamera2()
-            self.camera.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+            self.camera.configure(self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
             self.camera.start()
         else:
             self.camera = cv2.VideoCapture(0)
@@ -36,25 +36,36 @@ try:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # 95 to 125 for HUE
-        # saturation in 50 to 255
+        # saturation in 25 to 255
 
-        lower_blue = np.array([90, 25, 20])
-        upper_blue = np.array([125, 255, 255])
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
-        
+        # orange 15 to 25
+        # saturation 25 to 255
+
+        lower_val = np.array([25, 30, 20])
+        upper_val = np.array([80, 255, 255])
+        mask = cv2.inRange(hsv, lower_val, upper_val)
+        #
         result = cv2.bitwise_and(frame, frame, mask = mask)
 
-        cv2.imshow('result', result)
 
+        
+        #kernel = np.ones((5,5),np.uint8)
+
+        #result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+        #result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel)
+        #
+        #cv2.imshow('result', result)
+        
         gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
         # Display the resulting frame
         gray = cv2.medianBlur(gray, 5)
+
         
         
         rows = gray.shape[0]
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8,
                                    param1=100, param2=30,
-                                   minRadius=1, maxRadius=100)
+                                   minRadius=1, maxRadius=400)
         
         
         if circles is not None:
