@@ -5,8 +5,16 @@ import sys
 
 factor = 3.0
 
+def rot_mat(theta):
+    return np.array([[np.cos(theta) , -np.sin(theta)], 
+                     [np.sin(theta), np.cos(theta)]])
+
 def elipse(a, b, t, init):
-    return np.array([init[0] + a - a * np.cos(t / factor), init[1] + b * np.sin(t / factor)])
+    return np.array([init[0] - a + a * np.cos(t / factor), init[1] + b * np.sin(t / factor)])
+
+def rotated_elipse(a, b, t, init, theta):
+    init_rot = np.matmul(rot_mat(-theta), init)
+    return np.matmul(rot_mat(theta), elipse(a, b, t, init_rot))
 
 if __name__ == "__main__":
 
@@ -14,14 +22,14 @@ if __name__ == "__main__":
 
     robot = apis.Robot(IP_ADDRESS)
   
-    duck = np.array([0.9794962406158447, 1.392021656036377])
+    duck = np.array([-1.8402855396270752,-0.30841806530952454])
     box_width = .65
 
     print("Starting")
     try:
         # hostname = socket.gethostname()
         # ip_addr = socket.gethostbyname(hostname)
-        clientAddress = "192.168.0.25"
+        clientAddress = "192.168.0.10"
         optitrackServerAddress = "192.168.0.4"
         robot_id = 207
         
@@ -37,14 +45,14 @@ if __name__ == "__main__":
 
         init, angle = position.get()
 
-        sign = -1
+        dist, angleToDuck = apis.dist_and_angle(init, duck)
+        
+        a = dist / 2.0
+        theta = angleToDuck
+        
+        print(rot_mat(theta))
 
-        if init[0] <= duck[0]:
-            sign = 1
-
-        a = sign * apis.dist(init, duck) / 2.0
-
-        print(a)
+        print(a, theta, angleToDuck)
 
         b = box_width
         
@@ -53,7 +61,7 @@ if __name__ == "__main__":
             x_t, angle = position.get()
 
             if time.time() - start <= 2 * np.pi * factor:
-                x_d = elipse(a, b, time.time() - start, init)
+                x_d = rotated_elipse(a, b, time.time() - start, init, theta)
             else:
                 x_d = init
             
