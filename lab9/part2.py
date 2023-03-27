@@ -39,12 +39,13 @@ def run():
             
             # move left if width (circle[0] > 320) and right if (circle[0] < 320)
 
-            K = 1
+            K1 = 2
+            K2 = 900
 
             angle = 320 - circle[0]
             
             # if angle < 0 then means move to the right (clockwise)
-            move(-K * angle, K * angle)
+            move(K2 - K1 * angle, K2 + K1 * angle)
 
             #stop()
         
