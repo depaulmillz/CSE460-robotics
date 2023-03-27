@@ -22,14 +22,14 @@ if __name__ == "__main__":
 
     robot = apis.Robot(IP_ADDRESS)
   
-    duck = np.array([-1.8402855396270752,-0.30841806530952454])
+    duck = np.array([-2.220845937728882, -0.5739241242408752])
     box_width = .65
 
     print("Starting")
     try:
         # hostname = socket.gethostname()
         # ip_addr = socket.gethostbyname(hostname)
-        clientAddress = "192.168.0.10"
+        clientAddress = "192.168.0.3"
         optitrackServerAddress = "192.168.0.4"
         robot_id = 207
         
@@ -60,9 +60,21 @@ if __name__ == "__main__":
 
             x_t, angle = position.get()
 
-            if time.time() - start <= 2 * np.pi * factor:
-                x_d = rotated_elipse(a, b, time.time() - start, init, theta)
+            curr = time.time() - start
+
+            if curr < 2 * np.pi * factor - 0.1:
+                x_d = rotated_elipse(a, b, curr, init, theta)
+
+                if curr <= np.pi * factor - 0.1 and curr >= np.pi * factor + 0.1:
+                    K1 = 2000
+                    K2 = 2500
+                else:
+                    K2 = 2000
+                    K1 = 4000
+
             else:
+                K1 = 1000
+                K2 = 2000
                 x_d = init
             
             dist, desiredAngle = apis.dist_and_angle(x_d, x_t)
