@@ -1,9 +1,9 @@
-from Camera import *
+from CameraAndDetector import *
 import cv2
 
 if __name__ == "__main__":
 
-    camera = Camera()
+    camera = Camera(False)
     
     try:
         while True:

@@ -2,9 +2,9 @@ import Motor
 import time
 import cv2
 import numpy as np
-from Camera import *
+from CameraAndDetector import *
 
-camera = Camera()
+camera = Camera(True)
 
 PWM = Motor.Motor()
 
@@ -23,7 +23,7 @@ def run():
 
     while True:
 
-        circle = camera.get_largest_circle()
+        circle, img = camera.get_largest_blob_and_img()
 
         if circle is None:
             sensed = False
@@ -31,7 +31,7 @@ def run():
             sensed = True
         
         if not sensed:
-            move(-1500, 1500)
+            move(-1000, 1000)
         else:
 
             # higher width is to the right
@@ -39,7 +39,7 @@ def run():
             
             # move left if width (circle[0] > 320) and right if (circle[0] < 320)
 
-            K = 100
+            K = 1
 
             angle = 320 - circle[0]
             
@@ -47,6 +47,10 @@ def run():
             move(-K * angle, K * angle)
 
             #stop()
+        
+        cv2.imshow('frame', img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
         time.sleep(0.1)
 
