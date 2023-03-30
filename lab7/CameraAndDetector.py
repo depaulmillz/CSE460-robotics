@@ -3,7 +3,7 @@ import numpy as np
 from enum import Enum
 
 class Duck(Enum):
-    SMALL_DUCK = ([0, 0, 20],[180, 255, 255])
+    SMALL_DUCK = ([0, 78, 185],[32, 255, 255])
 
 class Camera:
 
@@ -30,7 +30,8 @@ class Camera:
 
     def get(self):
         if self.read_img:
-            return cv2.imread(self.img_name)
+            img = cv2.imread(self.img_name)
+            return cv2.resize(img, (640, 480))
         if self.rpi:
             return self.camera.capture_array()
         else:
@@ -67,23 +68,24 @@ class Camera:
         # Display the resulting frame
         gray = cv2.medianBlur(gray, 11)
 
-        _, gray = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
+        #_, gray = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
 
         params = cv2.SimpleBlobDetector_Params()
 
-        params.minThreshold = 0;
-        params.maxThreshold = 256;
+        params.minThreshold = 100;
+        params.maxThreshold = 255;
          
         # Filter by Area.
-        params.filterByArea = False
-        params.minArea = 100
+        params.filterByArea = True
+        params.minArea = 1000
+        params.maxArea = 2**64
          
         # Filter by Circularity
         params.filterByCircularity = False
         params.minCircularity = 0.1
          
         # Filter by Convexity
-        params.filterByConvexity = True
+        params.filterByConvexity = False
         params.minConvexity = 0.87
          
         # Filter by Inertia
@@ -114,7 +116,7 @@ class Camera:
         return np.array([blobs]), im_with_keypoints
     
     def get_blobs(self, color = Duck.SMALL_DUCK):
-        blobs, _ = self.get_blobs_and_grey(color)
+        blobs, _ = self.get_blobs_and_gray(color)
         return blobs
     
     def get_largest_blob(self, color = Duck.SMALL_DUCK):
