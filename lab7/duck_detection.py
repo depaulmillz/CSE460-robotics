@@ -1,6 +1,12 @@
 from CameraAndDetector import *
 import cv2
 
+def distance(s):
+    return 2421.692084 / s - 8.566887384
+
+def theta(u):
+    return -0.00172753493 * u + 0.5294127344
+
 if __name__ == "__main__":
 
     camera = Camera(True)
