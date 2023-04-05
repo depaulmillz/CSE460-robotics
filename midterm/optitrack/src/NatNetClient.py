@@ -278,7 +278,7 @@ class NatNetClient:
             result.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             result.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.multicast_address) + socket.inet_aton(self.local_ip_address))
             try:
-                if sys.platform == "darwin":
+                if sys.platform == "darwin" or sys.platform == "linux":
                     result.bind((self.multicast_address, port))
                 else:
                     result.bind( (self.local_ip_address, port) )
