@@ -9,6 +9,31 @@ def distance_duck(s):
 def theta_duck(u):
     return -0.00172753493 * u + 0.5294127344
 
+def rot_mat(theta):
+    return np.array([[np.cos(theta), -np.sin(theta)],
+                     [np.sin(theta), np.cos(theta)]])
+
+def blob_to_optitrack(blob, x_t, angle):
+    u = blob[0]
+    s = blob[2]
+
+    dist_to_camera = 0.16 # meters
+
+    dist_to_duck = distance_duck(s) / 100.0 # cm to m
+    angle_to_duck = theta_duck(u)
+
+    #print("Duck dist", dist_to_duck)
+    #print("Duck angle", angle_to_duck)
+
+    pos_duck_in_robot_frame = (dist_to_duck * np.array([np.cos(angle_to_duck), np.sin(angle_to_duck)])) + np.array([dist_to_camera, 0.0])
+
+    #print("Pos duck in robot frame", pos_duck_in_robot_frame)
+
+    #print(x_t)
+
+    R = rot_mat(angle)
+    return np.dot(R, pos_duck_in_robot_frame) + x_t
+
 class CirclePath:
     
     def __init__(self, position, factor, radius):
@@ -21,11 +46,11 @@ class CirclePath:
         t = time.time() - self.start
         if t / self.factor >= 2. * np.pi:
             return self.init
-        return self.radius * np.array([np.sin(t/self.factor) + self.init[0], np.cos(t/self.factor) + self.init[1]])
+        return self.radius * np.array([np.sin(t/self.factor) + self.init[0], np.cos(t/self.factor) - 1.0 + self.init[1]])
 
 if __name__ == "__main__":
 
-    camera = Camera(True)
+    camera = Camera(raspberrypi = True)
     robot = apis.LocalRobot()
     position = apis.Position("192.168.0.207", "192.168.0.4", 207)
     
@@ -37,6 +62,12 @@ if __name__ == "__main__":
             blobs = camera.get_blobs()           
 
             x_t, angle = position.get()
+            
+            if blobs is not None:
+                for blob in blobs[0, :]:
+                    p_d = blob_to_optitrack(blob, x_t, angle)
+                    print(p_d[0], p_d[1] ,sep=",")
+
             x_d = path.get_next()
 
             K1 = 1000

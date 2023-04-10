@@ -11,7 +11,7 @@ class Camera:
         
         self.rpi = raspberrypi
       
-        self.read_img = True
+        self.read_img = read_img
         self.img_name = img_name
 
         if not read_img:

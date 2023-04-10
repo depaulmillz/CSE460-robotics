@@ -88,7 +88,7 @@ class LocalRobot(Robot):
         self.motor = Motor.Motor()
 
     def set_motor(self, a, b, c, d):
-        self.motor.setMotorModel(a, b, c, d)
+        self.motor.setMotorModel(int(a), int(b), int(c), int(d))
 
     def stop_motor(self):
         self.set_motor(0, 0, 0, 0)
