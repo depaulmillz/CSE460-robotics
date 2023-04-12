@@ -9,9 +9,6 @@ def distance_duck(s):
 def theta_duck(u):
     return -0.00172753493 * u + 0.5294127344
 
-def rot_mat(theta):
-    return np.array([[np.cos(theta), -np.sin(theta)],
-                     [np.sin(theta), np.cos(theta)]])
 
 def blob_to_optitrack(blob, x_t, angle):
     u = blob[0]
@@ -25,14 +22,23 @@ def blob_to_optitrack(blob, x_t, angle):
     #print("Duck dist", dist_to_duck)
     #print("Duck angle", angle_to_duck)
 
-    pos_duck_in_robot_frame = (dist_to_duck * np.array([np.cos(angle_to_duck), np.sin(angle_to_duck)])) + np.array([dist_to_camera, 0.0])
+    p_duck = np.array([dist_to_duck * np.cos(angle_to_duck) + dist_to_camera, dist_to_duck * np.sin(angle_to_duck)])
 
     #print("Pos duck in robot frame", pos_duck_in_robot_frame)
 
     #print(x_t)
 
-    R = rot_mat(angle)
-    return np.dot(R, pos_duck_in_robot_frame) + x_t
+    theta = angle
+
+    T = np.array([[np.cos(theta), -np.sin(theta), x_t[0]],
+                  [np.sin(theta), np.cos(theta), x_t[1]],
+                  [0., 0., 1.]])
+    
+    vec = np.array([p_duck[0], p_duck[1], 1.])
+    
+    res = np.dot(T, vec)
+
+    return np.array([res[0], res[1]])
 
 class CirclePath:
     
