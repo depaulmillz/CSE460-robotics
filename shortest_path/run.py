@@ -61,23 +61,34 @@ if __name__ == "__main__":
 
     robot = apis.Robot(IP_ADDRESS)
 
-    x_d = G.nodes[0].pos
+    start_node = 0
+
+    end_node = 15
+
+    path = nx.astar_path(G, start_node, end_node, heuristic = lambda x,y: np.linalg.norm(G.nodes[x]["pos"] - G.nodes[y]["pos"]))
+
+    x_ds = [G.nodes[p]['pos'] for p in path]
+
+    print(x_ds)
+
+    x_f = np.copy(x_ds[0])
+
+    node_count = 0
 
     print("Starting")
     try:
         # hostname = socket.gethostname()
         # ip_addr = socket.gethostbyname(hostname)
-        clientAddress = "0.0.0.0"
-        optitrackServerAddress = "192.168.0.4"
-        robot_id = 207
+        clientAddress = "192.168.0.126"
+        optitrackServerAddress = "192.168.0.172"
+        robot_id = 307
         
         # Start up the streaming client now that the callbacks are set up.
         # This will run perpetually, and operate on a separate thread.
-
         position = apis.Position(clientAddress, optitrackServerAddress, robot_id)
 
-        K1 = 2000
-        K2 = 2500
+        K1 = 1000
+        K2 = 2000
         
         start = time.time()
 
@@ -88,7 +99,17 @@ if __name__ == "__main__":
             x_t, angle = position.get()
 
             curr = time.time() - start
-            
+
+            if curr > 1.0:
+                node_count += 1
+                if node_count >= len(x_ds):
+                    node_count = len(x_ds) - 1
+                x_f = x_ds[node_count]
+                start = time.time()
+                curr = time.time() - start
+
+            x_d = (x_f - x_t) + x_t
+
             dist, desiredAngle = apis.dist_and_angle(x_d, x_t)
 
             v = K1 * dist
@@ -104,9 +125,6 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Shutting down")
-        robot.stop_motor()
-        time.sleep(1)
-        robot.stop_motor()
         pass
     
     robot.stop_motor()
