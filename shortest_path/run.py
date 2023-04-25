@@ -3,11 +3,14 @@ import apis
 import time
 import sys
 import networkx as nx
+import os
 
 if __name__ == "__main__":
 
-    x_range = [4.475320816040039, 5.118253231048584, 5.675119400024414, 6.3023295402526855]
-    y_range = [-0.8638476133346558, -0.28133079409599304,  0.3373686373233795, 0.9117316603660583, 1.538606762886047]
+    x_range = [4.5, 5.2, 5.9, 6.6] #[4.475320816040039, 5.118253231048584, 5.675119400024414, 6.3023295402526855]
+    y_range = [-.9, -.2, .5, 1.2, 1.9] #[-0.8638476133346558, -0.28133079409599304,  0.3373686373233795, 0.9117316603660583, 1.538606762886047]
+
+    obstacle_nodes = [1, 10, 14]
 
     nodes = list()
 
@@ -33,23 +36,26 @@ if __name__ == "__main__":
 
     for i in range(grid.shape[0]):
         for j in range(grid.shape[1]):
-            G.add_node(j * grid.shape[0] + i, pos=grid[i,j])
+            if get_node_num(i, j) not in obstacle_nodes:
+                G.add_node(j * grid.shape[0] + i, pos=grid[i,j])
 
     for i in range(grid.shape[0]):
         for j in range(grid.shape[1]):
-            
-            pos_to_node_num[(grid[i][j][0], grid[i][j][1])] = get_node_num(i, j)
 
-            # i, j is next to
-            # i + 1, j
-            # i - 1, j
-            # i, j + 1
-            # i, j - 1
+            if get_node_num(i, j) not in obstacle_nodes:
 
-            if i + 1 < grid.shape[0]:
-                G.add_edge(get_node_num(i, j), get_node_num(i + 1, j), weight=get_node_weight(i, j, i + 1, j))
-            if j + 1 < grid.shape[1]:
-                G.add_edge(get_node_num(i, j), get_node_num(i, j + 1), weight=get_node_weight(i, j, i, j + 1))
+                pos_to_node_num[(grid[i][j][0], grid[i][j][1])] = get_node_num(i, j)
+
+                # i, j is next to
+                # i + 1, j
+                # i - 1, j
+                # i, j + 1
+                # i, j - 1
+
+                if i + 1 < grid.shape[0] and get_node_num(i + 1, j) not in obstacle_nodes:
+                    G.add_edge(get_node_num(i, j), get_node_num(i + 1, j), weight=get_node_weight(i, j, i + 1, j))
+                if j + 1 < grid.shape[1] and get_node_num(i, j + 1) not in obstacle_nodes:
+                    G.add_edge(get_node_num(i, j), get_node_num(i, j + 1), weight=get_node_weight(i, j, i, j + 1))
 
     #nx.draw(G)
 
@@ -61,9 +67,9 @@ if __name__ == "__main__":
 
     robot = apis.Robot(IP_ADDRESS)
 
-    start_node = 0
+    start_node = 15
 
-    end_node = 15
+    end_node = 13
 
     path = nx.astar_path(G, start_node, end_node, heuristic = lambda x,y: np.linalg.norm(G.nodes[x]["pos"] - G.nodes[y]["pos"]))
 
@@ -93,6 +99,8 @@ if __name__ == "__main__":
         start = time.time()
 
         init, angle = position.get()
+
+        slope = x_f - init
                 
         while True:
 
@@ -100,15 +108,23 @@ if __name__ == "__main__":
 
             curr = time.time() - start
 
-            if curr > 1.0:
+            if curr > 3.0:
                 node_count += 1
                 if node_count >= len(x_ds):
-                    node_count = len(x_ds) - 1
-                x_f = x_ds[node_count]
-                start = time.time()
-                curr = time.time() - start
+                    #node_count = len(x_ds) - 1
+                    slope = np.array([0.0, 0.0])
+                    init = x_ds[len(x_ds) - 1]
+                    start = time.time()
+                    curr = time.time() - start
+                else:
+                    x_f = x_ds[node_count]
+                    print(x_f)
+                    slope = x_f - x_t
+                    init = x_t
+                    start = time.time()
+                    curr = time.time() - start
 
-            x_d = (x_f - x_t) + x_t
+            x_d = (curr / 3.0) * (slope) + init
 
             dist, desiredAngle = apis.dist_and_angle(x_d, x_t)
 
@@ -130,4 +146,4 @@ if __name__ == "__main__":
     robot.stop_motor()
     robot.shutdown()
     print("Done")
-    sys.exit(0)
+    os._exit(0)
